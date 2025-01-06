@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bacteria Simulation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        /* Previous styles remain the same */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .rules {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        #bacteriaCanvas {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        /* New Dice Styles */
+        .dice-container {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin: 20px auto;
+            perspective: 1000px;
+        }
+        
+        .dice {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.5s;
+        }
+        
+        .dice.rolling {
+            animation: rolling 1.5s;
+        }
+        
+        .dice-face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: white;
+            border: 2px solid #000;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        .dot {
+            width: 20px;
+            height: 20px;
+            background: black;
+            border-radius: 50%;
+        }
+        
+        /* Positioning each face */
+        .front  { transform: translateZ(50px); }
+        .back   { transform: rotateY(180deg) translateZ(50px); }
+        .right  { transform: rotateY(90deg) translateZ(50px); }
+        .left   { transform: rotateY(-90deg) translateZ(50px); }
+        .top    { transform: rotateX(90deg) translateZ(50px); }
+        .bottom { transform: rotateX(-90deg) translateZ(50px); }
+
+        @keyframes rolling {
+            0% { transform: rotate3d(0, 0, 0, 0deg); }
+            30% { transform: rotate3d(1, 1, 0, 360deg); }
+            60% { transform: rotate3d(0, 1, 1, 720deg); }
+            100% { transform: rotate3d(1, 0, 0, 1080deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bacteria Simulation</h1>
+        <div class="grid">
+            <div>
+                <div class="input-group">
+                    <label for="blueCount">Blue Bacteria (Least-resistant):</label>
+                    <input type="number" id="blueCount" value="20">
+                    
+                    <label for="yellowCount">Yellow Bacteria (Moderate):</label>
+                    <input type="number" id="yellowCount" value="15">
+                    
+                    <label for="redCount">Red Bacteria (Resistant):</label>
+                    <input type="number" id="redCount" value="15">
+                </div>
+                
+                <button id="startButton">Start Simulation</button>
+                <button id="nextDayButton" disabled>Process Day</button>
+
+                <!-- Add Dice Container -->
+                <div class="dice-container">
+                    <div class="dice" id="dice">
+                        <div class="dice-face front">
+                            <div class="dot" style="visibility: hidden"></div>
+                            <div class="dot"></div>
+                            <div class="dot" style="visibility: hidden"></div>
+                            <div class="dot" style="visibility: hidden"></div>
+                            <div class="dot" style="visibility: hidden"></div>
+                            <div class="dot" style="visibility: hidden"></div>
+                        </div>
+                        <div class="dice-face back">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        <div class="dice-face right">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        <div class="dice-face left">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        <div class="dice-face top">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        <div class="dice-face bottom">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="status" id="status">
+                    Enter initial bacteria counts and click "Start Simulation"
+                </div>
+                
+                <div class="rules">
+                    <h3>Rules:</h3>
+                    <p>Roll 1,3,5,6: Remove 5 bacteria</p>
+                    <p>Roll 2,4: Skip dose</p>
+                    <p>Reproduction: +1 per surviving type</p>
+                </div>
+            </div>
+            
+            <div>
+                <canvas id="bacteriaCanvas" width="400" height="300"></canvas>
+                <canvas id="populationChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Previous JavaScript remains the same until processDay function
+        let currentDay = 0;
+        let isSimulationActive = false;
+        const TOTAL_DAYS = 20;
+        let populations = { blue: 20, yellow: 15, red: 15 };
+        let dailyData = [];
+        let chart;
+
+        // Initialize Chart.js
+        function initChart() {
+            const ctx = document.getElementById('populationChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Blue (Least-resistant)',
+                        data: [],
+                        borderColor: 'blue',
+                        tension: 0.1
+                    }, {
+                        label: 'Yellow (Moderate)',
+                        data: [],
+                        borderColor: 'gold',
+                        tension: 0.1
+                    }, {
+                        label: 'Red (Resistant)',
+                        data: [],
+                        borderColor: 'red',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Population'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Days'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function drawBacteria() {
+            const canvas = document.getElementById('bacteriaCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = 'bold 12px Arial';
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'center';
+            ctx.fillText('Bacteria Visual', canvas.width / 2, 20);
+
+            let yStart = 60;
+            const circleSize = 8;
+            const spacing = 15;
+            const circlesPerRow = 10;
+
+            Object.entries(populations).forEach(([color, count]) => {
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillStyle = 'black';
+                ctx.fillText(`${color.charAt(0).toUpperCase() + color.slice(1)}:`, 10, yStart);
+
+                ctx.fillStyle = color === 'yellow' ? 'gold' : color;
+                for (let i = 0; i < count; i++) {
+                    const row = Math.floor(i / circlesPerRow);
+                    const col = i % circlesPerRow;
+                    const x = 80 + (col * spacing);
+                    const y = yStart - 5 + (row * spacing);
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, circleSize / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                yStart += 80;
+            });
+        }
+
+        function updateChart() {
+            chart.data.labels.push(currentDay);
+            chart.data.datasets[0].data.push(populations.blue);
+            chart.data.datasets[1].data.push(populations.yellow);
+            chart.data.datasets[2].data.push(populations.red);
+            chart.update();
+        }
+
+        function removeBacteria() {
+            let remaining = 5;
+            for (const color of ['blue', 'yellow', 'red']) {
+                if (remaining <= 0) break;
+                const remove = Math.min(remaining, populations[color]);
+                populations[color] -= remove;
+                remaining -= remove;
+            }
+        }
+
+        function reproduceBacteria() {
+            for (const color in populations) {
+                if (populations[color] > 0) {
+                    populations[color] += 1;
+                }
+            }
+        }
+
+        // Updated dice rolling functions
+        function getRotationForNumber(num) {
+            const rotations = {
+                1: 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)',
+                2: 'rotateX(0deg) rotateY(-90deg) rotateZ(0deg)',
+                3: 'rotateX(0deg) rotateY(90deg) rotateZ(0deg)',
+                4: 'rotateX(0deg) rotateY(180deg) rotateZ(0deg)',
+                5: 'rotateX(-90deg) rotateY(0deg) rotateZ(0deg)',
+                6: 'rotateX(90deg) rotateY(0deg) rotateZ(0deg)'
+            };
+            return rotations[num];
+        }
+
+        async function rollDice() {
+            return new Promise((resolve) => {
+                const dice = document.getElementById('dice');
+                dice.classList.add('rolling');
+                
+                setTimeout(() => {
+                    dice.classList.remove('rolling');
+                    const roll = Math.floor(Math.random() * 6) + 1;
+                    dice.style.transform = getRotationForNumber(roll);
+                    resolve(roll);
+                }, 1500);
+            });
+        }
+
+        async function processDay() {
+            document.getElementById('nextDayButton').disabled = true;
+            const roll = await rollDice();
+            const status = document.getElementById('status');
+            
+            status.textContent = `Day ${currentDay + 1} - Rolled: ${roll}\n`;
+            
+            if ([1, 3, 5, 6].includes(roll)) {
+                removeBacteria();
+                status.textContent += "Took antibiotic - Removed 5 bacteria";
+            } else {
+                status.textContent += "Missed dose - No bacteria removed";
+            }
+            
+            reproduceBacteria();
+            updateChart();
+            drawBacteria();
+            
+            currentDay++;
+            
+            if (currentDay >= TOTAL_DAYS) {
+                document.getElementById('startButton').disabled = false;
+                status.textContent += "\nSimulation complete!";
+                isSimulationActive = false;
+            } else {
+                document.getElementById('nextDayButton').disabled = false;
+            }
+        }
+
+        function startSimulation() {
+            populations = {
+                blue: parseInt(document.getElementById('blueCount').value),
+                yellow: parseInt(document.getElementById('yellowCount').value),
+                red: parseInt(document.getElementById('redCount').value)
+            };
+
+            currentDay = 0;
+            isSimulationActive = true;
+            
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('nextDayButton').disabled = false;
+            document.getElementById('status').textContent = "Simulation started. Click 'Process Day' to continue.";
+            
+            // Reset chart
+            chart.data.labels = [];
+            chart.data.datasets.forEach(dataset => dataset.data = []);
+            chart.update();
+            
+            // Reset dice
+            const dice = document.getElementById('dice');
+            dice.style.transform = getRotationForNumber(1);
+            
+            drawBacteria();
+            updateChart();
+        }
+
+        // Initialize the simulation
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            drawBacteria();
+            
+            document.getElementById('startButton').addEventListener('click', startSimulation);
+            document.getElementById('nextDayButton').addEventListener('click', processDay);
+        });
+    </script>
+</body>
+</html>
