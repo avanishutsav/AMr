@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bacteria Simulation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+
+    "Experience the fascinating world of bacterial evolution in this interactive simulation! "
+                          Watch as three types of bacteria - blue (non-resistant), yellow (moderately resistant),
+                          and red (highly resistant) - battle against antibiotics in a compelling demonstration of
+                          antibiotic resistance. Roll the dice to simulate daily medication adherence, and witness
+                          "how missing doses affect bacterial growth."
     <style>
-        /* Previous styles remain the same */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -72,7 +77,6 @@
             background-color: white;
         }
 
-        /* New Dice Styles */
         .dice-container {
             width: 100px;
             height: 100px;
@@ -114,7 +118,6 @@
             border-radius: 50%;
         }
         
-        /* Positioning each face */
         .front  { transform: translateZ(50px); }
         .back   { transform: rotateY(180deg) translateZ(50px); }
         .right  { transform: rotateY(90deg) translateZ(50px); }
@@ -139,46 +142,41 @@
                     <label for="blueCount">Blue Bacteria (Least-resistant):</label>
                     <input type="number" id="blueCount" value="20">
                     
-                    <label for="yellowCount">Yellow Bacteria (Moderate):</label>
+                    <label for="yellowCount">Yellow Bacteria (Moderately Resistant):</label>
                     <input type="number" id="yellowCount" value="15">
                     
-                    <label for="redCount">Red Bacteria (Resistant):</label>
+                    <label for="redCount">Red Bacteria (Highly Resistant):</label>
                     <input type="number" id="redCount" value="15">
                 </div>
                 
                 <button id="startButton">Start Simulation</button>
                 <button id="nextDayButton" disabled>Process Day</button>
 
-                <!-- Add Dice Container -->
                 <div class="dice-container">
                     <div class="dice" id="dice">
+                        <!-- Face 1 (front) -->
                         <div class="dice-face front">
-                            <div class="dot" style="visibility: hidden"></div>
                             <div class="dot"></div>
-                            <div class="dot" style="visibility: hidden"></div>
-                            <div class="dot" style="visibility: hidden"></div>
-                            <div class="dot" style="visibility: hidden"></div>
-                            <div class="dot" style="visibility: hidden"></div>
                         </div>
+                        <!-- Face 2 (right) -->
+                        <div class="dice-face right">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        <!-- Face 3 (left) -->
+                        <div class="dice-face left">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        <!-- Face 4 (back) -->
                         <div class="dice-face back">
                             <div class="dot"></div>
                             <div class="dot"></div>
                             <div class="dot"></div>
                             <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
                         </div>
-                        <div class="dice-face right">
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
-                        <div class="dice-face left">
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
+                        <!-- Face 5 (top) -->
                         <div class="dice-face top">
                             <div class="dot"></div>
                             <div class="dot"></div>
@@ -186,7 +184,12 @@
                             <div class="dot"></div>
                             <div class="dot"></div>
                         </div>
+                        <!-- Face 6 (bottom) -->
                         <div class="dice-face bottom">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
                             <div class="dot"></div>
                             <div class="dot"></div>
                         </div>
@@ -213,7 +216,6 @@
     </div>
 
     <script>
-        // Previous JavaScript remains the same until processDay function
         let currentDay = 0;
         let isSimulationActive = false;
         const TOTAL_DAYS = 20;
@@ -221,7 +223,6 @@
         let dailyData = [];
         let chart;
 
-        // Initialize Chart.js
         function initChart() {
             const ctx = document.getElementById('populationChart').getContext('2d');
             chart = new Chart(ctx, {
@@ -329,15 +330,14 @@
             }
         }
 
-        // Updated dice rolling functions
         function getRotationForNumber(num) {
             const rotations = {
-                1: 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)',
-                2: 'rotateX(0deg) rotateY(-90deg) rotateZ(0deg)',
-                3: 'rotateX(0deg) rotateY(90deg) rotateZ(0deg)',
-                4: 'rotateX(0deg) rotateY(180deg) rotateZ(0deg)',
-                5: 'rotateX(-90deg) rotateY(0deg) rotateZ(0deg)',
-                6: 'rotateX(90deg) rotateY(0deg) rotateZ(0deg)'
+                1: 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)',      // Front face shows 1
+                2: 'rotateX(0deg) rotateY(-90deg) rotateZ(0deg)',    // Right face shows 2
+                3: 'rotateX(0deg) rotateY(90deg) rotateZ(0deg)',     // Left face shows 3
+                4: 'rotateX(180deg) rotateY(0deg) rotateZ(0deg)',    // Back face shows 4
+                5: 'rotateX(-90deg) rotateY(0deg) rotateZ(0deg)',    // Top face shows 5
+                6: 'rotateX(90deg) rotateY(0deg) rotateZ(0deg)'      // Bottom face shows 6
             };
             return rotations[num];
         }
@@ -345,20 +345,28 @@
         async function rollDice() {
             return new Promise((resolve) => {
                 const dice = document.getElementById('dice');
+                // Generate the random number before animation starts
+                const roll = Math.floor(Math.random() * 6) + 1;
+                
                 dice.classList.add('rolling');
                 
                 setTimeout(() => {
                     dice.classList.remove('rolling');
-                    const roll = Math.floor(Math.random() * 6) + 1;
+                    // Use the same roll number for both visual and logical outcomes
                     dice.style.transform = getRotationForNumber(roll);
                     resolve(roll);
                 }, 1500);
             });
         }
 
+        function verifyDiceRoll(roll) {
+            console.log(`Rolled: ${roll}`);
+        }
+
         async function processDay() {
             document.getElementById('nextDayButton').disabled = true;
             const roll = await rollDice();
+            verifyDiceRoll(roll);
             const status = document.getElementById('status');
             
             status.textContent = `Day ${currentDay + 1} - Rolled: ${roll}\n`;
